@@ -107,8 +107,14 @@ export default function GaussingGame() {
     }
   };
 
-  const isHost = room && room.host === socket.id;
-  const me = room ? room.players.find(p => p.id === socket.id) : null;
+  let isHost = false;
+  let me = null;
+  if (room) {
+    isHost = room.host === socket.id;
+    if (room.players) {
+      me = room.players.find(p => p.id === socket.id);
+    }
+  }
 
   // Render logic
   const renderHome = () => (
@@ -334,6 +340,18 @@ export default function GaussingGame() {
     </div>
   );
 
+  let currentContent = null;
+  if (!room) {
+    if (menuView === "home") currentContent = renderHome();
+    else if (menuView === "create") currentContent = renderCreate();
+    else currentContent = renderJoin();
+  } else {
+    if (room.gameState === "lobby") currentContent = renderLobby();
+    else if (room.gameState === "reading") currentContent = renderReading();
+    else if (room.gameState === "input") currentContent = renderInput();
+    else currentContent = renderResults();
+  }
+
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center p-4 font-sans selection:bg-cyan-500/30">
       <div className="max-w-4xl w-full">
@@ -346,16 +364,7 @@ export default function GaussingGame() {
           </p>
         </div>
 
-        {!room ? (
-          menuView === "home" ? renderHome() :
-          menuView === "create" ? renderCreate() :
-          renderJoin()
-        ) : (
-          room.gameState === "lobby" ? renderLobby() :
-          room.gameState === "reading" ? renderReading() :
-          room.gameState === "input" ? renderInput() :
-          renderResults()
-        )}
+        {currentContent}
       </div>
     </div>
   );
