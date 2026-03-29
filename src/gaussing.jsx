@@ -26,6 +26,31 @@ const paragraphs = [
     content: "Kirchhoff’s laws are the foundation of circuit analysis, detailing how energy and charge behave in an electrical network. Kirchhoff’s Current Law (KCL), also known as the junction rule, states that the total current entering a node must exactly equal the total current leaving it. This is based on the principle of conservation of charge, ensuring that electricity doesn't just pile up at a connection point. On the other hand, Kirchhoff’s Voltage Law (KVL) focuses on energy within a closed loop. It states that the algebraic sum of all electrical potential differences (voltages) around any closed circuit is zero. Essentially, any energy supplied by a source, like a battery, must be completely used up by the components (resistors, lamps, etc.) in that loop. Together, these two laws allow engineers to calculate unknown currents and voltages in even the most complex electronic systems.",
     keywords: ["current", "voltage", "circuit", "node", "loop", "conservation", "charge", "potential", "energy", "resistors", "battery", "kirchhoff", "junction", "algebraic", "sum"]    
   },
+  {
+    id: 5,
+    title: "The Lorentz Force & Charged Particle Dynamics",
+    content: "The Lorentz force is the force experienced by a charged particle moving through electric and magnetic fields. It is given by the equation F = q(E + v × B), where F is the force, q is the charge of the particle, E is the electric field, v is the velocity of the particle, and B is the magnetic field. This force is fundamental in understanding how charged particles behave in various electromagnetic environments, such as in cyclotrons, mass spectrometers, and even in astrophysical phenomena like solar winds. The Lorentz force can cause particles to spiral around magnetic field lines or accelerate in the direction of an electric field, making it a crucial concept in both classical and modern physics.",
+    keywords: ["force", "charged", "particle", "electric", "magnetic", "velocity", "cyclotrons", "mass spectrometers", "astrophysical", "solar winds", "spiral", "accelerate", "lorentz"]
+  },
+  {
+    id: 6,
+    title: "Maxwell's Equations & Electromagnetic Waves",
+    content: "Maxwell's equations are a set of four fundamental equations that describe how electric and magnetic fields are generated and altered by each other and by charges and currents. These equations, formulated by James Clerk Maxwell in the 1860s, unify electricity, magnetism, and optics into a single theoretical framework. The equations predict that oscillating electric and magnetic fields can propagate through space as electromagnetic waves at the speed of light. This insight led to the realization that light itself is an electromagnetic wave, revolutionizing our understanding of the nature of light and laying the groundwork for modern physics, including quantum mechanics and relativity.",
+    keywords: ["maxwell", "equations", "electric", "magnetic", "fields", "charges", "currents", "electromagnetic", "waves", "light", "optics", "propagate", "speed"]
+  },
+  {
+    id: 7,
+    title: "The Doppler Effect in Sound and Light",
+    content: "The Doppler effect is the change in frequency or wavelength of a wave in relation to an observer moving relative to the source of the wave. It is commonly experienced with sound waves, where an approaching source causes a higher pitch (frequency) and a receding source causes a lower pitch. In the context of light, the Doppler effect manifests as a redshift when an object moves away from the observer and a blueshift when it moves towards the observer. This phenomenon is crucial in astrophysics for determining the movement of stars and galaxies, providing evidence for the expansion of the universe.",
+    keywords: ["doppler", "effect", "frequency", "wavelength", "observer", "source", "sound", "light", "redshift", "blueshift", "astrophysics", "galaxies", "universe"]
+  }
+  {
+    id: 8,
+    title: "Thermodynamics & the Laws of Energy",
+    content: "Thermodynamics is the branch of physics that deals with heat, work, and energy. The first law of thermodynamics, also known as the law of energy conservation, states that energy cannot be created or destroyed, only transformed from one form to another. The second law introduces the concept of entropy, stating that in any natural process, the total entropy of a closed system will always increase over time. This explains why certain processes are irreversible and why energy tends to disperse. The third law states that as the temperature of a system approaches absolute zero, the entropy approaches a constant minimum. These laws govern everything from engines and refrigerators to the behavior of stars and black holes.",
+    keywords: ["thermodynamics", "heat", "work", "energy", "conservation", "entropy", "irreversible", "absolute zero", "engines", "refrigerators", "stars", "black holes"]
+  },
+
  
 ];
 
