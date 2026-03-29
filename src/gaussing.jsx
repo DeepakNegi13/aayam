@@ -1,318 +1,361 @@
 import React, { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 
-// Advanced physics paragraphs (12th Grade / College Level)
-const paragraphs = [
-  {
-    id: 1,
-    title: "Gauss's Law in Electrostatics",
-    content: "In physics, Gauss's law relates the distribution of electric charge to the resulting electric field. The law states that the net outward normal electric flux through any closed surface is proportional to the total electric charge enclosed within that closed surface. This foundational principle of electromagnetism, formalized by Carl Friedrich Gauss in 1835, is one of Maxwell's four equations. It fundamentally implies that electric charges act as sources or sinks for the electric field, drastically simplifying the calculation of electric fields in highly symmetric charge distributions like spheres, cylinders, and planar sheets.",
-    keywords: ["flux", "charge", "field", "surface", "symmetry", "maxwell", "sphere", "cylinder", "electrostatics", "proportional"]
-  },
-  {
-    id: 2,
-    title: "The Photoelectric Effect & Quantum Theory",
-    content: "The photoelectric effect is the emission of electrons when electromagnetic radiation, such as light, hits a material. Electrons emitted in this manner are called photoelectrons. Classical electromagnetism predicted that continuous light waves transfer energy to electrons, which would then be emitted when they accumulate enough energy. However, experiments showed that the energy of the emitted electrons depended only on the frequency of the incident light, not its intensity. Albert Einstein resolved this in 1905 by proposing that light consists of discrete quanta of energy, now called photons. This discovery laid the groundwork for wave-particle duality and modern quantum mechanics.",
-    keywords: ["electrons", "radiation", "light", "energy", "frequency", "photons", "quanta", "emission", "intensity", "wave", "particle", "quantum"]
-  },
-  {
-    id: 3,
-    title: "Electromagnetic Induction & Faraday's Law",
-    content: "Electromagnetic induction is the process of generating an electromotive force (EMF) across an electrical conductor in a changing magnetic field. Michael Faraday is credited with the discovery of induction in 1831. Faraday's law of induction states that the induced EMF in a closed circuit is equal to the negative of the time rate of change of the magnetic flux enclosed by the circuit. This principle is the operating mechanism behind electrical generators, transformers, and induction motors. Lenz's law dictates the direction of the induced current, stating it will flow in a way that opposes the change in flux that produced it.",
-    keywords: ["induction", "emf", "conductor", "magnetic", "field", "flux", "circuit", "generators", "transformers", "current", "lenz", "faraday"]
-  },
-  {
-    id: 4,
-    title: "Kirchhoff's Current and Voltage Laws",
-    content: "Kirchhoff’s laws are the foundation of circuit analysis, detailing how energy and charge behave in an electrical network. Kirchhoff’s Current Law (KCL), also known as the junction rule, states that the total current entering a node must exactly equal the total current leaving it. This is based on the principle of conservation of charge, ensuring that electricity doesn't just pile up at a connection point. On the other hand, Kirchhoff’s Voltage Law (KVL) focuses on energy within a closed loop. It states that the algebraic sum of all electrical potential differences (voltages) around any closed circuit is zero. Essentially, any energy supplied by a source, like a battery, must be completely used up by the components (resistors, lamps, etc.) in that loop. Together, these two laws allow engineers to calculate unknown currents and voltages in even the most complex electronic systems.",
-    keywords: ["current", "voltage", "circuit", "node", "loop", "conservation", "charge", "potential", "energy", "resistors", "battery", "kirchhoff", "junction", "algebraic", "sum"]    
-  },
-  {
-    id: 5,
-    title: "The Lorentz Force & Charged Particle Dynamics",
-    content: "The Lorentz force is the force experienced by a charged particle moving through electric and magnetic fields. It is given by the equation F = q(E + v × B), where F is the force, q is the charge of the particle, E is the electric field, v is the velocity of the particle, and B is the magnetic field. This force is fundamental in understanding how charged particles behave in various electromagnetic environments, such as in cyclotrons, mass spectrometers, and even in astrophysical phenomena like solar winds. The Lorentz force can cause particles to spiral around magnetic field lines or accelerate in the direction of an electric field, making it a crucial concept in both classical and modern physics.",
-    keywords: ["force", "charged", "particle", "electric", "magnetic", "velocity", "cyclotrons", "mass spectrometers", "astrophysical", "solar winds", "spiral", "accelerate", "lorentz"]
-  },
-  {
-    id: 6,
-    title: "Maxwell's Equations & Electromagnetic Waves",
-    content: "Maxwell's equations are a set of four fundamental equations that describe how electric and magnetic fields are generated and altered by each other and by charges and currents. These equations, formulated by James Clerk Maxwell in the 1860s, unify electricity, magnetism, and optics into a single theoretical framework. The equations predict that oscillating electric and magnetic fields can propagate through space as electromagnetic waves at the speed of light. This insight led to the realization that light itself is an electromagnetic wave, revolutionizing our understanding of the nature of light and laying the groundwork for modern physics, including quantum mechanics and relativity.",
-    keywords: ["maxwell", "equations", "electric", "magnetic", "fields", "charges", "currents", "electromagnetic", "waves", "light", "optics", "propagate", "speed"]
-  },
-  {
-    id: 7,
-    title: "The Doppler Effect in Sound and Light",
-    content: "The Doppler effect is the change in frequency or wavelength of a wave in relation to an observer moving relative to the source of the wave. It is commonly experienced with sound waves, where an approaching source causes a higher pitch (frequency) and a receding source causes a lower pitch. In the context of light, the Doppler effect manifests as a redshift when an object moves away from the observer and a blueshift when it moves towards the observer. This phenomenon is crucial in astrophysics for determining the movement of stars and galaxies, providing evidence for the expansion of the universe.",
-    keywords: ["doppler", "effect", "frequency", "wavelength", "observer", "source", "sound", "light", "redshift", "blueshift", "astrophysics", "galaxies", "universe"]
-  }
-  {
-    id: 8,
-    title: "Thermodynamics & the Laws of Energy",
-    content: "Thermodynamics is the branch of physics that deals with heat, work, and energy. The first law of thermodynamics, also known as the law of energy conservation, states that energy cannot be created or destroyed, only transformed from one form to another. The second law introduces the concept of entropy, stating that in any natural process, the total entropy of a closed system will always increase over time. This explains why certain processes are irreversible and why energy tends to disperse. The third law states that as the temperature of a system approaches absolute zero, the entropy approaches a constant minimum. These laws govern everything from engines and refrigerators to the behavior of stars and black holes.",
-    keywords: ["thermodynamics", "heat", "work", "energy", "conservation", "entropy", "irreversible", "absolute zero", "engines", "refrigerators", "stars", "black holes"]
-  },
-
- 
-];
+// Connect to the local server running on port 4000. 
+// Uses window.location.hostname so it works across the local network.
+const socket = io(`http://${window.location.hostname}:4000`);
 
 export default function GaussingGame() {
-  const [currentParagraph, setCurrentParagraph] = useState(null);
+  const [playerName, setPlayerName] = useState("");
+  const [roomCode, setRoomCode] = useState("");
   const [playerCount, setPlayerCount] = useState(4);
-  const [players, setPlayers] = useState([]);
-  const [currentPlayerTurn, setCurrentPlayerTurn] = useState(0);
+  const [room, setRoom] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
   const [currentWord, setCurrentWord] = useState("");
-  const [gameState, setGameState] = useState("setup"); // setup, reading, input, results
+  const [menuView, setMenuView] = useState("home"); // home, create, join
+  
+  // Track if we've already submitted our word this round
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
-    pickRandomParagraph();
-  }, []);
+    socket.on('roomCreated', (roomData) => {
+      setRoom(roomData);
+      setErrorMsg("");
+    });
+    
+    socket.on('roomUpdated', (roomData) => {
+      setRoom(roomData);
+      setErrorMsg("");
+      // Reset submission flag when returning to lobby
+      if (roomData.gameState === 'lobby') {
+        setHasSubmitted(false);
+      }
+    });
 
-  const pickRandomParagraph = () => {
-    const randomIdx = Math.floor(Math.random() * paragraphs.length);
-    setCurrentParagraph(paragraphs[randomIdx]);
+    socket.on('gameStarted', (roomData) => {
+      setRoom(roomData);
+    });
+
+    socket.on('inputPhase', (roomData) => {
+      setRoom(roomData);
+      setCurrentWord("");
+    });
+
+    socket.on('results', (roomData) => {
+      setRoom(roomData);
+    });
+
+    socket.on('error', (msg) => {
+      setErrorMsg(msg);
+      // If we failed to join, kick us back to menu
+      if (!room) {
+        setMenuView('home');
+      }
+    });
+
+    return () => {
+      socket.off('roomCreated');
+      socket.off('roomUpdated');
+      socket.off('gameStarted');
+      socket.off('inputPhase');
+      socket.off('results');
+      socket.off('error');
+    };
+  }, [room]);
+
+  const handleCreateRoom = (e) => {
+    e.preventDefault();
+    if (!playerName.trim()) {
+      setErrorMsg("Please enter your name");
+      return;
+    }
+    socket.emit('createRoom', { playerName: playerName.trim(), playerCount });
+  };
+
+  const handleJoinRoom = (e) => {
+    e.preventDefault();
+    if (!playerName.trim() || !roomCode.trim()) {
+      setErrorMsg("Please enter your name and a room code");
+      return;
+    }
+    socket.emit('joinRoom', { roomId: roomCode.trim().toUpperCase(), playerName: playerName.trim() });
+    setMenuView('joining');
   };
 
   const startGame = () => {
-    const initialPlayers = Array.from({ length: playerCount }, (_, i) => ({
-      id: i + 1,
-      name: `Player ${i + 1}`,
-      word: "",
-      eliminated: false,
-      score: 0
-    }));
-    setPlayers(initialPlayers);
-    setGameState("reading");
-    setCurrentPlayerTurn(0);
-  };
-
-  const beginInputPhase = () => {
-    setGameState("input");
-  };
-
-  const handleWordSubmit = (e) => {
-    e.preventDefault();
-    if (!currentWord.trim()) return;
-
-    const updatedPlayers = [...players];
-    updatedPlayers[currentPlayerTurn].word = currentWord.trim().toLowerCase();
-    
-    setPlayers(updatedPlayers);
-    setCurrentWord("");
-
-    if (currentPlayerTurn + 1 < playerCount) {
-      setCurrentPlayerTurn(currentPlayerTurn + 1);
-    } else {
-      evaluateWords(updatedPlayers);
+    if (room && room.host === socket.id) {
+       socket.emit('startGame', room.id);
     }
   };
 
-  const evaluateWords = (activePlayers) => {
-    // Simulated Semantic/Relevance Evaluation
-    // In a real app, this would use a backend NLP model / word embeddings. 
-    // Here we simulate it by checking against passage keywords and comparing to other players.
-    
-    let scoredPlayers = activePlayers.map(p => {
-      let score = Math.floor(Math.random() * 30) + 40; // Base baseline
+  const finishReading = () => {
+    if (room && room.host === socket.id) {
+       socket.emit('finishReading', room.id);
+    }
+  };
+
+  const submitWord = (e) => {
+    e.preventDefault();
+    if (!currentWord.trim()) return;
+    setHasSubmitted(true);
+    socket.emit('submitWord', { roomId: room.id, word: currentWord.trim() });
+  };
+
+  const playAgain = () => {
+    if (room && room.host === socket.id) {
+       socket.emit('playAgain', room.id);
+    }
+  };
+
+  const isHost = room && room.host === socket.id;
+  const me = room ? room.players.find(p => p.id === socket.id) : null;
+
+  // Render logic
+  const renderHome = () => (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl animate-fade-in text-center">
+      <h2 className="text-2xl font-bold mb-6 text-white">Online Multiplayer</h2>
+      <p className="text-neutral-400 mb-8 max-w-md mx-auto">
+        Host a room and share the code with friends on your local WiFi network, or join an existing room.
+      </p>
+      {errorMsg && <div className="text-red-400 bg-red-500/10 p-4 rounded-xl mb-6 font-bold animate-pulse">{errorMsg}</div>}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <button onClick={() => setMenuView("create")} className="px-8 py-4 bg-cyan-500 text-white font-bold rounded-full text-lg transition-transform hover:scale-105 shadow-[0_0_15px_rgba(6,182,212,0.4)]">
+          Create Game
+        </button>
+        <button onClick={() => setMenuView("join")} className="px-8 py-4 bg-white text-black font-bold rounded-full text-lg transition-transform hover:scale-105 shadow-xl">
+          Join Game
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderCreate = () => (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl animate-fade-in text-center max-w-md mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-white">Host a Game</h2>
+      {errorMsg && <div className="text-red-400 mb-4">{errorMsg}</div>}
+      <form onSubmit={handleCreateRoom} className="space-y-6">
+        <div>
+          <label className="block text-neutral-400 mb-2 font-medium">Your Nickname</label>
+          <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} className="w-full bg-neutral-950 border-2 border-neutral-700 focus:border-cyan-500 rounded-xl px-4 py-3 text-white outline-none text-center" />
+        </div>
+        <div>
+           <label className="block text-neutral-400 mb-4 font-medium">Max Players (including you)</label>
+           <div className="flex gap-2 justify-center">
+             {[3, 4, 5, 6, 7, 8].map(num => (
+               <button type="button" key={num} onClick={() => setPlayerCount(num)} className={`w-12 h-12 rounded-full font-bold transition-all border-2 ${playerCount === num ? 'border-cyan-500 bg-cyan-500/20 text-cyan-300 transform scale-110 shadow-[0_0_10px_rgba(6,182,212,0.4)]' : 'border-neutral-700 text-neutral-400'}`}>{num}</button>
+             ))}
+           </div>
+        </div>
+        <button type="submit" disabled={!playerName.trim()} className="w-full py-4 bg-cyan-500 disabled:bg-neutral-800 text-white font-bold rounded-xl text-lg transition-transform hover:scale-105">
+          Host Room
+        </button>
+        <button type="button" onClick={() => setMenuView("home")} className="w-full py-3 text-neutral-400 hover:text-white transition-colors">Back</button>
+      </form>
+    </div>
+  );
+
+  const renderJoin = () => (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl animate-fade-in text-center max-w-md mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-white">Join a Game</h2>
+      {errorMsg && <div className="text-red-400 mb-4">{errorMsg}</div>}
+      <form onSubmit={handleJoinRoom} className="space-y-6">
+        <div>
+          <label className="block text-neutral-400 mb-2 font-medium">Your Nickname</label>
+          <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} className="w-full bg-neutral-950 border-2 border-neutral-700 focus:border-cyan-500 rounded-xl px-4 py-3 text-white outline-none text-center" />
+        </div>
+        <div>
+          <label className="block text-neutral-400 mb-2 font-medium">4-Letter Room Code</label>
+          <input type="text" value={roomCode} onChange={(e) => setRoomCode(e.target.value)} maxLength={4} className="w-full bg-neutral-950 border-2 border-neutral-700 focus:border-cyan-500 rounded-xl px-4 py-3 text-white text-3xl tracking-widest uppercase outline-none text-center" />
+        </div>
+        <button type="submit" disabled={!playerName.trim() || roomCode.length !== 4} className="w-full py-4 bg-white text-black disabled:bg-neutral-800 disabled:text-neutral-500 font-bold rounded-xl text-lg transition-transform hover:scale-105">
+          Join Room
+        </button>
+        <button type="button" onClick={() => setMenuView("home")} className="w-full py-3 text-neutral-400 hover:text-white transition-colors">Back</button>
+      </form>
+    </div>
+  );
+
+  const renderLobby = () => (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl animate-fade-in text-center max-w-xl mx-auto mt-4">
+      <div className="inline-block px-8 py-4 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl mb-8">
+        <div className="text-cyan-400 font-bold mb-1 uppercase tracking-wider text-sm">Room Code</div>
+        <div className="text-5xl font-black tracking-widest text-white">{room.id}</div>
+      </div>
       
-      // Bonus if it matches exact passage keywords
-      if (currentParagraph.keywords.includes(p.word)) {
-        score += 30;
-      } else if (currentParagraph.content.toLowerCase().includes(p.word)) {
-        score += 15;
-      }
+      <h3 className="text-xl text-neutral-300 font-medium mb-4">
+        Players ({room.players.length}/{room.maxPlayers})
+      </h3>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-8">
+        {room.players.map(p => (
+           <div key={p.id} className="bg-neutral-950 border border-neutral-800 py-3 px-4 rounded-xl flex items-center justify-center gap-2">
+             {room.host === p.id && <span className="text-cyan-400 text-xs font-bold uppercase" title="Host">👑</span>}
+             <span className={`font-bold ${p.id === socket.id ? 'text-white' : 'text-neutral-400'}`}>{p.name} {p.id === socket.id ? "(You)" : ""}</span>
+           </div>
+        ))}
+      </div>
 
-      // Bonus for similarity/consensus with other players' words
-      let consensusBonus = 0;
-      activePlayers.forEach(other => {
-        if (p.id !== other.id) {
-          if (p.word === other.word) consensusBonus += 20;
-          else if (p.word.substring(0, 3) === other.word.substring(0, 3)) consensusBonus += 10;
-        }
-      });
+      {isHost ? (
+        <button onClick={startGame} disabled={room.players.length < 3} className="w-full py-4 bg-cyan-500 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-bold rounded-xl text-xl transition-transform hover:scale-[1.02]">
+          Start Game
+        </button>
+      ) : (
+        <div className="text-neutral-400 py-4 font-medium animate-pulse">Waiting for host to start...</div>
+      )}
+      {isHost && room.players.length < 3 && <div className="text-red-400 text-sm mt-3 font-medium">Need at least 3 players to start</div>}
+    </div>
+  );
 
-      return { ...p, score: score + consensusBonus };
-    });
+  const renderReading = () => (
+    <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 md:p-12 shadow-2xl animate-fade-in relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+      
+      <span className="inline-block px-4 py-1.5 bg-cyan-500/10 text-cyan-400 rounded-full text-sm font-bold tracking-wider mb-6 border border-cyan-500/20">
+        {room.paragraph.title.toUpperCase()}
+      </span>
+      
+      <p className="text-xl md:text-2xl text-neutral-200 leading-relaxed font-serif mb-10">
+        {room.paragraph.content}
+      </p>
+      
+      <div className="flex justify-center mt-8 border-t border-neutral-800 pt-8">
+        {isHost ? (
+          <button 
+            onClick={finishReading}
+            className="px-10 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-full text-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all hover:scale-105"
+          >
+            Everyone Finished Reading?
+          </button>
+        ) : (
+           <p className="text-neutral-400 animate-pulse font-medium">Reading Phase... Host will proceed when ready.</p>
+        )}
+      </div>
+    </div>
+  );
 
-    // Find the outlier (lowest score)
-    const sorted = [...scoredPlayers].sort((a, b) => a.score - b.score);
-    const eliminatedId = sorted[0].id; // Lowest similarity/context score is eliminated
-
-    scoredPlayers = scoredPlayers.map(p => ({
-      ...p,
-      eliminated: p.id === eliminatedId
-    }));
-
-    setPlayers(scoredPlayers);
-    setGameState("results");
+  const renderInput = () => {
+    // Determine if all players except you have submitted (or if some have)
+    const submittedCount = room.players.filter(p => p.word !== "").length;
+    
+    return (
+      <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-10 shadow-2xl text-center animate-fade-in max-w-lg mx-auto">
+        <h2 className="text-3xl font-black text-white mb-2">Your Turn</h2>
+        <p className="text-neutral-400 mb-8">Enter ONE word relating to the passage to prove you're not the outlier!</p>
+        
+        {!hasSubmitted ? (
+          <form onSubmit={submitWord}>
+            <input
+              type="text"
+              value={currentWord}
+              onChange={(e) => setCurrentWord(e.target.value)}
+              placeholder="Type your single word..."
+              className="w-full bg-neutral-950 border-2 border-neutral-700 focus:border-cyan-500 rounded-2xl px-6 py-5 text-center text-2xl text-white outline-none transition-colors mb-8 shadow-inner"
+              autoFocus
+              autoComplete="off"
+            />
+            <button 
+              type="submit"
+              disabled={!currentWord.trim()}
+              className="w-full py-4 bg-white text-black disabled:bg-neutral-800 disabled:text-neutral-500 font-bold rounded-2xl text-lg transition-all hover:scale-[1.02] active:scale-95"
+            >
+              Submit Word
+            </button>
+          </form>
+        ) : (
+          <div className="py-8">
+            <h3 className="text-2xl font-bold text-cyan-400 mb-4 animate-pulse">Word Locked In!</h3>
+            <p className="text-neutral-300">Waiting for other players...</p>
+          </div>
+        )}
+        
+        <div className="mt-8 pt-6 border-t border-neutral-800">
+           <p className="text-neutral-500 text-sm mb-4">Submission Status ({submittedCount}/{room.players.length})</p>
+           <div className="flex flex-wrap gap-2 justify-center">
+             {room.players.map(p => (
+                <div key={p.id} className={`px-3 py-1 rounded-md text-xs font-bold ${p.word ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/50' : 'bg-neutral-800 text-neutral-500 border border-neutral-700'}`}>
+                  {p.name} {p.id === socket.id && "(You)"} {p.word && "✓"}
+                </div>
+             ))}
+           </div>
+        </div>
+      </div>
+    );
   };
 
-  const resetGame = () => {
-    pickRandomParagraph();
-    setGameState("setup");
-  };
+  const renderResults = () => (
+    <div className="space-y-6 animate-fade-in-up w-full">
+      <h2 className="text-3xl font-black text-center mb-8">Evaluation Complete</h2>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {room.players.map(p => (
+          <div 
+            key={p.id} 
+            className={`p-6 rounded-2xl border-2 flex flex-col items-center justify-center transition-all ${
+              p.eliminated 
+                ? 'border-red-500/50 bg-red-500/10' 
+                : 'border-neutral-800 bg-neutral-900'
+            }`}
+          >
+            <h3 className={`text-xl font-bold mb-1 ${p.eliminated ? 'text-red-400' : 'text-neutral-300'}`}>
+              {p.name} {p.id === socket.id && "(You)"}
+            </h3>
+            <div className={`text-3xl font-black mb-3 ${p.eliminated ? 'text-red-500 line-through' : 'text-white'}`}>
+              "{p.word}"
+            </div>
+            {p.eliminated && (
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white uppercase tracking-widest mt-2 animate-bounce">
+                The Outlier!
+              </span>
+            )}
+            {!p.eliminated && (
+              <span className="text-sm font-medium text-cyan-400/80">
+                Match Score: {p.score}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
 
-  const activePlayer = players[currentPlayerTurn];
+      {isHost && (
+        <div className="flex justify-center mt-12">
+          <button 
+            onClick={playAgain}
+            className="px-12 py-4 border-2 border-neutral-700 bg-neutral-900 text-neutral-300 hover:text-white hover:border-white hover:bg-white/5 font-bold rounded-full text-lg shadow-xl transition-all"
+          >
+            Play Another Round
+          </button>
+        </div>
+      )}
+      {!isHost && (
+        <div className="flex justify-center mt-12">
+           <p className="text-neutral-400 font-medium animate-pulse">Waiting for host to start another round...</p>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center p-4 font-sans selection:bg-cyan-500/30">
-      <div className="max-w-3xl w-full">
-        
-        {/* Header */}
+      <div className="max-w-4xl w-full">
         <div className="text-center mb-10">
           <h1 className="text-5xl font-black tracking-tighter bg-gradient-to-br from-cyan-400 to-blue-600 bg-clip-text text-transparent drop-shadow-lg mb-2">
             GAUSSING
           </h1>
           <p className="text-neutral-400 font-medium tracking-wide">
-            The Physics Concept Outlier Game
+            The Online Physics Concept Outlier Game
           </p>
         </div>
 
-        {/* SETUP PHASE */}
-        {gameState === "setup" && (
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 shadow-2xl animate-fade-in text-center">
-            <h2 className="text-2xl font-bold mb-6 text-white">Game Setup</h2>
-            <p className="text-neutral-400 mb-8 max-w-md mx-auto">
-              Read the physics passage carefully. Every player submits one word that captures the essence. 
-              The player whose word is the most disconnected (the outlier) is eliminated!
-            </p>
-            
-            <div className="flex flex-col items-center gap-4 mb-8">
-              <label className="text-neutral-300 font-medium">Number of Players:</label>
-              <div className="flex gap-4">
-                {[3, 4, 5, 6].map(num => (
-                  <button
-                    key={num}
-                    onClick={() => setPlayerCount(num)}
-                    className={`w-14 h-14 rounded-full text-lg font-bold transition-all border-2 ${
-                      playerCount === num 
-                        ? 'border-cyan-500 bg-cyan-500/20 text-cyan-300 scale-110 shadow-[0_0_15px_rgba(6,182,212,0.4)]' 
-                        : 'border-neutral-700 hover:border-neutral-500 text-neutral-400'
-                    }`}
-                  >
-                    {num}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <button 
-              onClick={startGame}
-              className="w-full sm:w-auto px-12 py-4 bg-white text-black hover:bg-neutral-200 font-bold rounded-full text-lg transition-transform hover:scale-105 active:scale-95"
-            >
-              Start Game
-            </button>
-          </div>
+        {!room ? (
+          menuView === "home" ? renderHome() :
+          menuView === "create" ? renderCreate() :
+          renderJoin()
+        ) : (
+          room.gameState === "lobby" ? renderLobby() :
+          room.gameState === "reading" ? renderReading() :
+          room.gameState === "input" ? renderInput() :
+          renderResults()
         )}
-
-        {/* READING PHASE */}
-        {gameState === "reading" && currentParagraph && (
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-8 md:p-12 shadow-2xl animate-fade-in relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-            
-            <span className="inline-block px-4 py-1.5 bg-cyan-500/10 text-cyan-400 rounded-full text-sm font-bold tracking-wider mb-6 border border-cyan-500/20">
-              {currentParagraph.title.toUpperCase()}
-            </span>
-            
-            <p className="text-xl md:text-2xl text-neutral-200 leading-relaxed font-serif mb-10">
-              {currentParagraph.content}
-            </p>
-            
-            <div className="flex justify-center mt-8 border-t border-neutral-800 pt-8">
-              <button 
-                onClick={beginInputPhase}
-                className="px-10 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold rounded-full text-lg shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all hover:scale-105"
-              >
-                Everyone Finished Reading?
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* INPUT PHASE */}
-        {gameState === "input" && activePlayer && (
-          <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-10 shadow-2xl text-center animate-fade-in max-w-lg mx-auto">
-            <h2 className="text-3xl font-black text-white mb-2">{activePlayer.name}'s Turn</h2>
-            <p className="text-neutral-400 mb-8">Enter ONE word related to the physics passage. Keep it a secret!</p>
-            
-            <form onSubmit={handleWordSubmit}>
-              <input
-                type="password"
-                value={currentWord}
-                onChange={(e) => setCurrentWord(e.target.value)}
-                placeholder="Type your word..."
-                className="w-full bg-neutral-950 border-2 border-neutral-700 focus:border-cyan-500 rounded-2xl px-6 py-5 text-center text-2xl text-white outline-none transition-colors mb-8 shadow-inner"
-                autoFocus
-                autoComplete="off"
-              />
-              <button 
-                type="submit"
-                disabled={!currentWord.trim()}
-                className="w-full py-4 bg-white text-black disabled:bg-neutral-800 disabled:text-neutral-500 font-bold rounded-2xl text-lg transition-all hover:scale-[1.02] active:scale-95"
-              >
-                Submit & Hide
-              </button>
-            </form>
-            <div className="mt-6 flex justify-center gap-2">
-              {players.map((p, i) => (
-                <div key={p.id} className={`w-3 h-3 rounded-full ${i < currentPlayerTurn ? 'bg-cyan-500' : i === currentPlayerTurn ? 'bg-white animate-pulse' : 'bg-neutral-700'}`} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* RESULTS PHASE */}
-        {gameState === "results" && (
-          <div className="space-y-6 animate-fade-in-up">
-            <h2 className="text-3xl font-black text-center mb-8">Evaluation Complete</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {players.map(p => (
-                <div 
-                  key={p.id} 
-                  className={`p-6 rounded-2xl border-2 flex flex-col items-center justify-center transition-all ${
-                    p.eliminated 
-                      ? 'border-red-500/50 bg-red-500/10' 
-                      : 'border-neutral-800 bg-neutral-900'
-                  }`}
-                >
-                  <h3 className={`text-xl font-bold mb-1 ${p.eliminated ? 'text-red-400' : 'text-neutral-300'}`}>
-                    {p.name}
-                  </h3>
-                  <div className={`text-3xl font-black mb-3 ${p.eliminated ? 'text-red-500 line-through' : 'text-white'}`}>
-                    "{p.word}"
-                  </div>
-                  {p.eliminated && (
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white uppercase tracking-widest mt-2 animate-bounce">
-                      Eliminated
-                    </span>
-                  )}
-                  {!p.eliminated && (
-                    <span className="text-sm font-medium text-cyan-400/80">
-                      Match Score: {p.score}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="bg-neutral-900 border border-neutral-800 p-6 rounded-2xl text-center mt-8 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-              <h3 className="text-xl font-bold text-red-400 mb-2">Why were they eliminated?</h3>
-              <p className="text-neutral-400">
-                The consensus engine determined their word lacked semantic similarity to both the core physics concepts ("{currentParagraph.keywords.slice(0, 3).join(', ')}") and the words chosen by the rest of the group.
-              </p>
-            </div>
-
-            <div className="flex justify-center mt-12">
-              <button 
-                onClick={resetGame}
-                className="px-12 py-4 border-2 border-neutral-700 text-neutral-300 hover:text-white hover:border-white hover:bg-white/5 font-bold rounded-full text-lg transition-all"
-              >
-                Play Another Round
-              </button>
-            </div>
-          </div>
-        )}
-
       </div>
     </div>
   );
